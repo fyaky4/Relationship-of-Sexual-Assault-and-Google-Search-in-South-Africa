@@ -1,0 +1,1035 @@
+---
+title: "Special Project2"
+author: "Fauziya Ado Yakasai"
+date: "5/31/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+```{r}
+# http://www.storybench.org/mapping-search-data-from-google-trends-in-r/
+
+#devtools::install_github('PMassicotte/gtrendsR')
+#Sys.setenv(TZ = "UTC")
+
+set.seed(35)
+library(gtrendsR)
+library(reshape2)
+  
+
+library(maps)
+library(ggplot2)
+library(lettercase)
+library(viridis)
+library(pals)
+library(scico)
+library(ggrepel)
+library(tidyverse)
+```
+
+```{r}
+my_theme <- function() {
+    theme_bw() +
+    theme(panel.background = element_blank()) +
+    theme(plot.background = element_rect(fill = "seashell")) +
+    theme(panel.border = element_blank()) +                     # facet border
+    theme(strip.background = element_blank()) +                 # facet title background
+    theme(plot.margin = unit(c(.5, .5, .5, .5), "cm")) +
+    theme(panel.spacing = unit(3, "lines")) +
+    theme(panel.grid.major = element_blank()) +
+    theme(panel.grid.minor = element_blank()) +
+    theme(legend.background = element_blank()) +
+    theme(legend.key = element_blank()) +
+    theme(legend.title = element_blank())
+  }
+```
+
+
+
+
+```{r}
+#crime <- gtrends(c("rape","robbery","carjacking"), time = "2009-01-01 2018-12-31", gprop = "web", geo = c("ZA"))
+#crime %>% glimpse()
+```
+
+```{r}
+#plot(crime) + 
+ # my_theme() +
+ # geom_line(size = 0.5) 
+```
+
+```{r}
+rape <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31",
+                 geo = c("ZA"))
+```
+
+```{r}
+plot(rape) + 
+  my_theme() +
+  geom_line(size = 0.5) + theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+```{r}
+# http://keithnewman.co.uk/r/maps-in-r.html
+library(maps)     
+library(mapdata)
+#map('worldHires','South Africa')
+
+#http://www.rpubs.com/spoonerf/countrymapggplot2
+library(maptools)
+library(raster)
+library(plyr)
+library(ggplot2)
+library(rgdal)
+
+
+```
+
+```{r}
+
+
+
+SA1<-getData("GADM", country="ZA", level=0)
+SA2<-getData("GADM", country="ZA", level=1)
+#SA3<-getData("GADM", country="ZA", level=2)
+#SA4<-getData("GADM", country="ZA", level=3)
+
+
+
+#plot(SA1)
+#plot(SA2)
+#plot(SA3)
+```
+
+
+
+```{r}
+#interest by region
+RapeInterestByRegion <- as_tibble(rape$interest_by_region)
+RapeInterestByRegion <- RapeInterestByRegion %>% 
+  dplyr::mutate(region = stringr::str_to_lower(location))
+
+
+#interest by city
+#RapeInterestByCity<- as_tibble(rape$interest_by_city)
+#RapeInterestByCity <- RapeInterestByCity %>% 
+  #dplyr::mutate(city = stringr::str_to_lower(location))
+
+
+
+SA_UTM<-spTransform(SA2, CRS("+init=EPSG:32737"))
+
+
+
+
+```
+
+
+
+```{r}
+#interest by region
+colnames(SA_UTM@data)[4]<- "location"
+SA_UTM@data$id <- rownames(SA_UTM@data)
+SA_UTM@data <- join(SA_UTM@data, RapeInterestByRegion, by="location")
+SA_df <- fortify(SA_UTM)
+SA_df <- join(SA_df,SA_UTM@data, by="id")
+```
+
+
+
+```{r}
+library(ggmap)
+library(scales)
+```
+
+```{r}
+theme_opts<-list(theme(panel.grid.minor = element_blank(),
+                       panel.grid.major = element_blank(),
+                       panel.background = element_blank(),
+                       plot.background = element_blank(),
+                       axis.line = element_blank(),
+                       axis.text.x = element_blank(),
+                       axis.text.y = element_blank(),
+                       axis.ticks = element_blank(),
+                       axis.title.x = element_blank(),
+                       axis.title.y = element_blank(),
+                       plot.title = element_blank()))
+```
+
+
+```{r}
+#ggplot() + 
+ # geom_polygon(data = SA_df, aes(x = long, y = lat, group = group, fill =
+                                    #  hits), color = "black", size = 0.25) +
+ # theme(aspect.ratio=1)+
+ # scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+ # labs(title="RAPE TREND MAP")
+```
+
+
+
+```{r}
+
+#interest by city
+
+#SA_UTM1<-spTransform(SA3, CRS("+init=EPSG:32737"))
+#view(SA_UTM1@data)
+#SA_UTM1@data$NAME_2
+
+#colnames(SA_UTM1@data)[7]<- "city"
+#SA_UTM1@data$id <- rownames(SA_UTM1@data)
+#RapeInterestByCity$id <- rownames(RapeInterestByCity)
+#SA_UTM1@data <- join(SA_UTM1@data, RapeInterestByCity)
+#view(SA_UTM1@data)
+
+#SA_df1 <- fortify(SA_UTM1)
+#SA_df1<- join(SA_df1,SA_UTM1@data, by="id")
+#view(SA_df1)
+
+```
+
+
+```{r}
+#ggplot() + 
+ # geom_polygon(data = SA_df1, aes(x = long, y = lat, group = group, fill =
+                                     # hits), color = "black", size = 0.25) +
+  #theme(aspect.ratio=1)+
+  #scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  #labs(title="RAPE TREND MAP BY CITY")
+```
+
+
+
+
+
+
+```{r}
+#rape trend data by region
+r1 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-EC"))
+
+
+r2 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-FS"))
+
+r3 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-GT"))
+r4 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-NL"))
+r5 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-LP"))
+r6 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-MP"))
+r7 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-NC"))
+r8 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-NW"))
+
+r9 <- gtrends(c("rape"), 
+                 gprop = "web", 
+                 time = "2009-01-01 2018-12-31", 
+                 geo = c("ZA-WC"))
+
+
+
+```
+
+```{r}
+#data for interest over time for each region
+
+rtime1 <- as_tibble(r1$interest_over_time)
+rtime1 <- rtime1%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+
+rtime1$location <- rep("Eastern Cape",nrow(rtime1))
+
+rtime2 <- as_tibble(r2$interest_over_time)
+rtime2 <- rtime2%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+rtime2$location <- rep("Free State",nrow(rtime2))
+
+rtime3 <- as_tibble(r3$interest_over_time)
+rtime3 <- rtime3%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+rtime3$location <- rep("Gauteng",nrow(rtime3))
+
+rtime4 <- as_tibble(r4$interest_over_time)
+rtime4 <- rtime4%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+rtime4$location <- rep("KwaZulu-Natal",nrow(rtime4))
+
+rtime5 <- as_tibble(r5$interest_over_time)
+rtime5 <- rtime5%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+rtime5$location <- rep("Limpopo",nrow(rtime5))
+
+rtime6 <- as_tibble(r6$interest_over_time)
+rtime6 <- rtime6%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+rtime6$location <- rep("Mpumalanga",nrow(rtime6))
+
+rtime7 <- as_tibble(r7$interest_over_time)
+rtime7 <- rtime7%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+rtime7$location <- rep("Northern Cape",nrow(rtime7))
+
+rtime8 <- as_tibble(r8$interest_over_time)
+rtime8 <- rtime8%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+rtime8$location <- rep("North West",nrow(rtime8))
+
+rtime9 <- as_tibble(r9$interest_over_time)
+rtime9 <- rtime9%>% 
+  dplyr::mutate(time = stringr::str_to_lower(date()))
+
+rtime9$location <- rep("Western Cape",nrow(rtime9))
+
+```
+
+
+```{r}
+#combine the region data
+
+library(lubridate)
+rtime<-rbind(rtime1,rtime2,rtime3,rtime4,rtime5,rtime6,rtime7,rtime8,rtime9)
+#some hits <1 so we approximate to one
+rtime$hits <- as.numeric(rtime$hits)
+
+rtime$hits[is.na(rtime$hits)]  <- 1
+
+year<-year(rtime$date)
+
+rtime<- cbind(rtime,year)
+
+
+rtime<-as.data.frame( aggregate(rtime[,2], list(location=rtime$location,year=rtime$year), mean))
+  
+ colnames(rtime)[colnames(rtime)=="x"] <- "GT"
+
+  
+  
+  
+
+```
+
+
+```{r}
+#get the map for google trend for each year
+
+SA_UTM2<-spTransform(SA2, CRS("+init=EPSG:32737"))
+colnames(SA_UTM2@data)[4]<- "location"
+
+rtime$id[rtime$location == "Eastern Cape"] <- "1"
+rtime$id[rtime$location == "Free State"] <- "2"
+rtime$id[rtime$location == "Gauteng"] <- "3"
+rtime$id[rtime$location == "KwaZulu-Natal"] <- "4"
+rtime$id[rtime$location == "Limpopo"] <- "5"
+rtime$id[rtime$location == "Mpumalanga"] <- "6"
+rtime$id[rtime$location == "Northern Cape"] <- "7"
+rtime$id[rtime$location == "North West"] <- "8"
+rtime$id[rtime$location == "Western Cape"] <- "9"
+(rtime$id<-as.numeric(rtime$id))
+
+d1 <- rtime[ which(rtime$year==2009), ]
+d2 <- rtime[ which(rtime$year==2010), ]
+d3 <- rtime[ which(rtime$year==2011), ]
+d4 <- rtime[ which(rtime$year==2012), ]
+d5 <- rtime[ which(rtime$year==2013), ]
+d6 <- rtime[ which(rtime$year==2014), ]
+d7 <- rtime[ which(rtime$year==2015), ]
+d8 <- rtime[ which(rtime$year==2016), ]
+d9 <- rtime[ which(rtime$year==2017), ]
+d10 <- rtime[ which(rtime$year==2018), ]
+
+
+SA_UTM2@data <- join(SA_UTM2@data, d1)
+#view(SA_UTM2@data)
+c1<-SA_UTM2@data
+t1 <- fortify(SA_UTM2)
+t1<- join(t1,c1)
+
+a<-spTransform(SA2, CRS("+init=EPSG:32737"))
+colnames(a@data)[4]<- "location"
+
+c2 <- join(a@data, d2)
+t2 <- fortify(a)
+t2<- join(t2,c2)
+
+c3 <- join(a@data, d3)
+t3 <- fortify(a)
+t3<- join(t3,c3)
+
+c4 <- join(a@data, d4)
+t4 <- fortify(a)
+t4<- join(t4,c4)
+
+c5 <- join(a@data, d5)
+t5 <- fortify(a)
+t5<- join(t5,c5)
+
+c6 <- join(a@data, d6)
+t6 <- fortify(a)
+t6<- join(t6,c6)
+
+c7 <- join(a@data, d7)
+t7 <- fortify(a)
+t7<- join(t7,c7)
+
+c8 <- join(a@data, d8)
+t8 <- fortify(a)
+t8<- join(t8,c8)
+
+c9 <- join(a@data, d9)
+t9 <- fortify(a)
+t9<- join(t9,c9)
+
+c10 <- join(a@data, d10)
+t10 <- fortify(a)
+t10<- join(t10,c10)
+```
+
+
+
+```{r}
+g1<-ggplot() + 
+  geom_polygon(data = t1, aes(x = long, y = lat, group = group, fill =
+                                     GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2009 TREND MAP")
+```
+
+
+
+```{r}
+g2<-ggplot() + 
+  geom_polygon(data = t2, aes(x = long, y = lat, group = group, fill =
+                                      GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2010 TREND MAP")
+```
+
+```{r}
+g3<-ggplot() + 
+  geom_polygon(data = t3, aes(x = long, y = lat, group = group, fill =
+                                      GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2011 TREND MAP")
+```
+
+```{r}
+g4<-ggplot() + 
+  geom_polygon(data = t4, aes(x = long, y = lat, group = group, fill =
+                                      GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2012 TREND MAP")
+```
+
+
+```{r}
+g5<-ggplot() + 
+  geom_polygon(data = t5, aes(x = long, y = lat, group = group, fill =
+                                      GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2013 TREND MAP")
+```
+
+
+```{r}
+g6<-ggplot() + 
+  geom_polygon(data = t6, aes(x = long, y = lat, group = group, fill =
+                                     GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2014 TREND MAP")
+
+
+g7<-ggplot() + 
+  geom_polygon(data = t7, aes(x = long, y = lat, group = group, fill =
+                                      GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2015 TREND MAP")
+
+
+g8<-ggplot() + 
+  geom_polygon(data = t8, aes(x = long, y = lat, group = group, fill =
+                                      GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2016 TREND MAP")
+
+
+g9<-ggplot() + 
+  geom_polygon(data = t9, aes(x = long, y = lat, group = group, fill =
+                                      GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2017 TREND MAP")
+
+
+
+g10<-ggplot() + 
+  geom_polygon(data = t10, aes(x = long, y = lat, group = group, fill =
+                                      GT), color = "black", size = 0.25) +
+  theme(aspect.ratio=1)+
+  scale_fill_distiller(name="interest", palette = "YlGn", breaks = pretty_breaks(n = 5))+
+  labs(title="2018 TREND MAP")
+```
+
+
+```{r}
+#http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/81-ggplot2-easy-way-to-mix-multiple-graphs-on-the-same-page/
+library(ggpubr)
+
+#ggarrange(g1,g2,nrow=1, ncol=2)
+#ggarrange(g3,g4,nrow=1,ncol=2)
+#ggarrange(g5,g6,nrow=1,ncol=2)
+#ggarrange(g7,g8,nrow=1,ncol=2)
+#ggarrange(g9,g10,nrow=1,ncol=2)
+
+```
+
+
+
+
+
+
+
+
+
+```{r}
+#combine gtrend and incidence data
+library(readr)
+dat1 <- read_csv("~/Desktop/special project/rape2.csv")
+dat2 <- read_csv("~/Desktop/special project/population.csv")
+#view(dat)
+dat1<-as.data.frame(dat1)
+dat3<- as.data.frame(rtime)
+dat2<- as.data.frame(dat2)
+
+s1 <-dat1[order(dat1$location),]
+s2 <-dat2[order(dat2$location),]
+s3 <-dat3[order(dat3$location),]
+
+
+rapemerge<-Reduce(merge, list(s1, s2, s3))
+
+```
+
+
+
+```{r}
+#get the map for each year using rape incidence data
+
+#SA_UTM2<-spTransform(SA2, CRS("+init=EPSG:32737"))
+#colnames(SA_UTM2@data)[4]<- "location"
+
+#s1$id[s1$location == "Eastern Cape"] <- "1"
+#s1$id[s1$location == "Free State"] <- "2"
+#s1$id[s1$location == "Gauteng"] <- "3"
+#s1$id[s1$location == "KwaZulu-Natal"] <- "4"
+#s1$id[s1$location == "Limpopo"] <- "5"
+#s1$id[s1$location == "Mpumalanga"] <- "6"
+#s1$id[s1$location == "Northern Cape"] <- "7"
+#s1$id[s1$location == "North West"] <- "8"
+#s1$id[s1$location == "Western Cape"] <- "9"
+#(s1$id<-as.numeric(s1$id))
+
+#d1 <- s1[ which(s1$year==2009), ]
+#d2 <- s1[ which(s1$year==2010), ]
+#d3 <- s1[ which(s1$year==2011), ]
+#d4 <- s1[ which(s1$year==2012), ]
+#d5 <- s1[ which(s1$year==2013), ]
+#d6 <- s1[ which(s1$year==2014), ]
+#d7 <- s1[ which(s1$year==2015), ]
+#d8 <- s1[ which(s1$year==2016), ]
+#d9 <- s1[ which(s1$year==2017), ]
+#d10 <- s1[ which(s1$year==2018), ]
+
+
+#SA_UTM2@data <- join(SA_UTM2@data, d1)
+#view(SA_UTM2@data)
+#c1<-SA_UTM2@data
+#t1 <- fortify(SA_UTM2)
+#t1<- join(t1,c1)
+
+#a<-spTransform(SA2, CRS("+init=EPSG:32737"))
+#colnames(a@data)[4]<- "location"
+
+#c2 <- join(a@data, d2)
+#t2 <- fortify(a)
+#t2<- join(t2,c2)
+
+#c3 <- join(a@data, d3)
+#t3 <- fortify(a)
+#t3<- join(t3,c3)
+
+#c4 <- join(a@data, d4)
+#t4 <- fortify(a)
+#t4<- join(t4,c4)
+
+#c5 <- join(a@data, d5)
+#t5 <- fortify(a)
+#t5<- join(t5,c5)
+
+#c6 <- join(a@data, d6)
+#t6 <- fortify(a)
+#t6<- join(t6,c6)
+
+#c7 <- join(a@data, d7)
+#t7 <- fortify(a)
+#t7<- join(t7,c7)
+
+#c8 <- join(a@data, d8)
+#t8 <- fortify(a)
+#t8<- join(t8,c8)
+
+#c9 <- join(a@data, d9)
+#t9 <- fortify(a)
+#t9<- join(t9,c9)
+
+#c10 <- join(a@data, d10)
+#t10 <- fortify(a)
+#t10<- join(t10,c10)
+
+```
+
+
+
+
+```{r}
+
+rapemerge <-rapemerge[order(rapemerge$id),]
+
+#adjusting rape incidence
+rapemerge$IR<-(rapemerge$cases/rapemerge$population)*1000
+
+#taking log of adjusted rape incidence and taking care of the negative.
+
+
+rapemerge$logIR<-log(((rapemerge$IR)+1)-min(rapemerge$IR))
+
+
+```
+
+
+```{r}
+
+#https://stackoverflow.com/questions/19462321/how-can-i-rescale-every-column-in-my-data-frame-to-a-0-100-scale-in-r
+
+#rescale cases by maximum for each year
+#scales:::rescale()
+rapemerge<-as.data.frame(rapemerge)
+
+#rapemerge$scalecases <-  scale(rapemerge$cases, center = FALSE, scale = max(rapemerge$cases, na.rm = TRUE,by=rapemerge$year)/100)
+
+library(conflicted)
+library(dplyr)
+conflict_prefer("mutate", "plyr")
+conflict_prefer("mutate", "dplyr")
+
+df_scaled <- rapemerge %>% group_by(location) %>% mutate(Sdcases=scale(cases, center = FALSE, scale = max(cases, na.rm = TRUE)/100))
+
+#using rate
+df_scaled <- df_scaled %>% group_by(location) %>% mutate(SdIR=scale(IR, center = FALSE, scale = max(IR, na.rm = TRUE)/100))
+
+
+df_scaled <- df_scaled %>% group_by(location) %>% mutate(SdGT=scale(GT, center = FALSE, scale = max(GT, na.rm = TRUE)/100))
+
+
+
+df_scaled <- df_scaled %>% group_by(location) %>% mutate(SdlogIR=scale(logIR, center = FALSE, scale = max(logIR, na.rm = TRUE)/100))
+
+df_scaled <- df_scaled %>% group_by(location) %>% mutate(population=scale(population, center = FALSE, scale = max(population, na.rm = TRUE)/100))
+
+```
+
+
+```{r}
+
+
+
+ggplot(df_scaled, aes(fill=location, y=SdGT, x=year)) + 
+    geom_bar(position="dodge", stat="identity")+
+  ggtitle("BARPLOT OF GT FOR EACH YEAR")+
+theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(df_scaled, aes(fill=SdGT, y=location, x=year)) + 
+    geom_bar(position="dodge", stat="identity")+
+ggtitle("BARPLOT OF GT FOR EACH REGION~YEAR")+
+theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+
+```{r}
+#https://conflicted.r-lib.org/
+
+#devtools::install_github("r-lib/conflicted")
+#library(conflicted)
+library(tidyr)
+library(dplyr)
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+
+#http://www.sthda.com/english/articles/32-r-graphics-essentials/128-plot-time-series-data-using-ggplot/
+
+
+#temporal pattern of incidence and google trend
+
+df1 <- df_scaled %>%
+  select(year, SdIR,SdGT,location) %>%
+  gather(key = "variable", value = "value", -year,-location)
+
+df2 <- df_scaled %>%
+  select(year, SdlogIR,SdGT,location) %>%
+  gather(key = "variable", value = "value", -year,-location)
+
+
+
+
+```
+
+
+
+```{r}
+#temporal pattern
+
+library(ggplot2)
+theme_set(theme_minimal())
+
+ggplot(df1) + geom_line(aes(x = year, y = value, color = variable)) + facet_wrap(~location)
+
+  
+
+
+
+
+ggplot(df2) + geom_line(aes(x = year, y = value, color = variable)) + facet_wrap(~location)
+
+  
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+
+#http://www.r-tutor.com/gpu-computing/correlation/kendall-tau-b
+
+cor.test(x=df_scaled$SdIR,df_scaled$SdGT, method = 'spearman',exact = FALSE)
+
+
+
+#cor.test(df_scaled$cases1,df_scaled$avehit1,method = 'kendall')
+
+
+cor.test(df_scaled$SdlogIR,df_scaled$SdGT,method = 'spearman')
+
+
+
+```
+
+```{r}
+
+
+require(plyr)
+func <- function(df_scaled)
+{
+return(data.frame(COR = cor(df_scaled$SdIR, df_scaled$SdGT)))
+}
+
+cor1<-ddply(df_scaled, .(location), func)
+
+by(df_scaled, df_scaled$location, function(df_scaled) t.test(df_scaled$SdIR, df_scaled$SdGT, paired = T))
+
+```
+
+
+
+```{r}
+require(plyr)
+func <- function(df_scaled)
+{
+return(data.frame(COR = cor(df_scaled$SdGT, df_scaled$SdlogIR)))
+}
+
+cor2<-ddply(df_scaled, .(location), func)
+
+by(df_scaled, df_scaled$location, function(df_scaled) t.test(df_scaled$SdGT, df_scaled$SdlogIR, paired = T))
+
+```
+
+
+
+
+```{r}
+
+ccf(df_scaled$SdGT,df_scaled$SdIR, plot = FALSE)
+
+#https://anomaly.io/detect-correlation-time-series/
+correlationTable = function(graphs) {
+  cross = matrix(nrow = length(graphs), ncol = length(graphs))
+  for(graph1Id in 1:length(graphs)){
+    graph1 = graphs[[graph1Id]]
+    print(graph1Id)
+    for(graph2Id in 1:length(graphs)) {
+      graph2 = graphs[[graph2Id]]
+      if(graph1Id == graph2Id){
+        break;
+      } else {
+        correlation = ccf(graph1, graph2, lag.max = 0)
+        cross[graph1Id, graph2Id] = correlation$acf[1]
+      }
+    }
+  }
+  cross
+}
+```
+
+```{r}
+d1 <- df_scaled[ which(df_scaled$location=='Eastern Cape'), ]
+d2 <- df_scaled[ which(df_scaled$location=='Free State'), ]
+d3 <- df_scaled[ which(df_scaled$location=='Gauteng'), ]
+d4 <- df_scaled[ which(df_scaled$location=='KwaZulu-Natal'), ]
+d5 <- df_scaled[ which(df_scaled$location=='Limpopo'), ]
+d6 <- df_scaled[ which(df_scaled$location=='Mpumalanga'), ]
+d7 <- df_scaled[ which(df_scaled$location=='North West'), ] 
+d8 <- df_scaled[ which(df_scaled$location=='Northern Cape'), ]
+d9 <- df_scaled[ which(df_scaled$location=='Western Cape'), ]
+
+ccf(d1$SdIR,d1$SdGT,type = "correlation",plot = FALSE)
+ccf(d2$SdIR,d2$SdGT,type = "correlation",plot = FALSE)
+ccf(d3$SdIR,d3$SdGT,type = "correlation",plot = FALSE)
+ccf(d4$SdIR,d4$SdGT,type = "correlation",plot = FALSE)
+ccf(d5$SdIR,d5$SdGT,type = "correlation",plot = FALSE)
+ccf(d6$SdIR,d6$SdGT,type = "correlation",plot = FALSE)
+ccf(d7$SdIR,d7$SdGT,type = "correlation",plot = FALSE)
+ccf(d8$SdIR,d8$SdGT,type = "correlation",plot = FALSE)
+ccf(d9$SdIR,d9$SdGT,type = "correlation",plot = FALSE)
+```
+
+
+
+
+
+
+```{r}
+
+library(psych)
+pairs.panels(df_scaled[,c(10,11,12)], 
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = FALSE # show correlation ellipses
+             )
+```
+
+
+
+```{r}
+#test for equivalence
+
+#install.packages("TOSTER")
+library("TOSTER")
+(avg<-data.frame(aggregate(df_scaled[, 10:12], list(df_scaled$location), mean)))
+
+```
+
+```{r}
+
+(std<-data.frame(aggregate(df_scaled[, 10:12], list(df_scaled$location), sd)))
+
+```
+
+
+
+```{r}
+#testing equivalence
+set.seed(35)
+tmat <- matrix(NA, ncol = length(avg$SdIR), nrow = length(avg$SdGT))
+
+for(i in 1:length(avg$SdIR)){
+  for(j in 1:length(avg$SdIR))
+    {
+  tt <- TOSTpaired.raw( n=10,m1=avg$SdIR[i], m2= avg$SdGT[i] , sd1=std$SdIR[i], sd2=std$SdGT[i],r12=cor1$COR[i],  low_eqbound=-j, high_eqbound=j, alpha = 0.05,plot = FALSE,verbose = FALSE)
+   tmat[i,j] <- max(tt$TOST_p1, tt$TOST_p2)
+  }
+}
+  
+
+```
+
+```{r}
+cl <- rainbow(9)
+plot(tmat[1,] ~ col(tmat)[1,], type = 'l',xlim=c(1,15),ylim = c(0,1),main="The Equivalence Graph",ylab="P-Values",xlab="Bound",col=cl[1])
+for (i in 2:9){
+  
+  points(tmat[i,] ~ col(tmat)[i,], type = 'l',col = cl[i],legend(10,1,std$Group.1,fill =cl ))
+}
+```
+
+
+
+
+
+
+```{r}
+tmat <- matrix(NA, ncol = length(avg$SdIR), nrow = length(avg$SdIR))
+
+for(i in 1:length(avg$SdIR)){
+  for(j in 1:length(avg$SdIR))
+    {
+  tt <- TOSTtwo(m1=avg$SdIR[i], m2= avg$SdGT[i] , sd1=std$SdIR[i], sd2=std$SdGT[i],n1=10,n2=10,  low_eqbound=-j, high_eqbound=j, alpha = 0.05,plot = FALSE,verbose = FALSE)
+   tmat[i,j] <- max(tt$TOST_p1, tt$TOST_p2)
+  }
+}
+
+plot(tmat[1,] ~ col(tmat)[1,], type = 'l',xlim=c(1,15), ylim = c(0,1),main="The Equivalence Graph",ylab="P-Values",xlab="Bound",col=cl[1])
+for (i in 2:9){
+  points(tmat[i,] ~ col(tmat)[i,], type = 'l',col = cl[i],legend(10,1,std$Group.1,fill =cl))
+}
+
+```
+
+
+
+
+
+
+```{r}
+
+d=cbind(d1[c(4,11,12)],d2[c(4,11,12)],d3[c(4,11,12)],d4[c(4,11,12)],d5[c(4,11,12)],d6[c(4,11,12)],d7[c(4,11,12)],d8[c(4,11,12)],
+        d9[c(4,11,12)])
+colnames(d)<-c("population-Eastern Cape" , "SdIR-Eastern Cape", "SdGT-Eastern Cape",   "population-Free State", "SdIR-Free State","SdGT-Free State",
+               "population-Gauteng", "SdIR-Gauteng", "SdGT-Gauteng",
+  
+  "population-KwaZulu-Natal", "SdIR-KwaZulu-Natal","SdGT-KwaZulu-Natal",     
+ "population-Limpopo", "SdIR-Limpopo","SdGT-Limpopo",      "population-Mpumalanga","SdIR-Mpumalanga","SdGT-Mpumalanga",
+ "population-North West", "SdIR-North West", "SdGT-North West" ,
+ "population-Northern Cape", "SdIR-Northern Cape","SdGT-Northern Cape" ,"population-Western Cape",       
+ "SdIR-Western Cape","SdGT-Western Cape" )
+```
+
+
+```{r}
+#devtools::install_github("ha0ye/rEDM")
+#install.packages("remotes")
+#remotes::install_github("chengfeifan/Causality")
+names = c(1:45)
+library(rEDM)
+for (i in 1:44){
+  k=i+1
+  for(j in k:45){
+ a1<- ccm(d, E = 3, 
+  lib_column = colnames(d[i]), target_column = colnames(d[j]), 
+  lib_sizes = seq(10, 80, by = 10), num_samples = 100)
+ b1<- ccm(d, E = 3, 
+  lib_column = colnames(d[j]), target_column = colnames(d[i]), 
+  lib_sizes = seq(10, 80, by = 10), num_samples = 100)
+ 
+ a_means <- ccm_means(a1)
+ b_means <- ccm_means(b1)
+
+ 
+par(mar = c(4, 4, 1, 1), mgp = c(2.5, 1, 0))  # set up margins for plotting
+y1 <- pmax(0, a_means$rho)
+y2 <- pmax(0, b_means$rho)
+
+ 
+ mypath <- file.path(getwd(),paste("p_",names[i],names[j], ".jpg", sep = ""))
+ jpeg(file=mypath)
+ 
+plot(a_means$lib_size, y1, type = "l", col = "red", xlab = "Library Size", 
+    ylab = "Cross Map Skill (rho)", ylim = c(-0.25, 0.25),main="Casuality Graph for Eastern Cape")
+lines(b_means$lib_size, y2, col = "blue")
+legend(x = "topleft", legend = c(paste(colnames(d[i],"xmap",colnames(d[j]))),paste(colnames(d[j]),"xmap",colnames(d[i]))), col = c("red", 
+    "blue"), lwd = 1, bty = "n", inset = 0.02, cex = 0.8)
+dev.off()
+  }
+  
+}
+#/Users/yakasai/Desktop/figures
+```
+
+
+```{r}
+library(rEDM)
+
+ a1<- ccm(d, E = 3, 
+  lib_column = colnames(d[10]), target_column = colnames(d[11]), 
+  lib_sizes = seq(10, 80, by = 10), num_samples = 100)
+ b1<- ccm(d, E = 3, 
+  lib_column = colnames(d[11]), target_column = colnames(d[10]), 
+  lib_sizes = seq(10, 80, by = 10), num_samples = 100)
+ 
+ a_means <- ccm_means(a1)
+ b_means <- ccm_means(b1)
+
+ 
+par(mar = c(4, 4, 1, 1), mgp = c(2.5, 1, 0))  # set up margins for plotting
+y1 <- pmax(0, a_means$rho)
+y2 <- pmax(0, b_means$rho)
+
+ 
+ 
+plot(a_means$lib_size, y1, type = "l", col = "red", xlab = "Library Size", 
+    ylab = "Cross Map Skill (rho)", ylim = c(-10, 10),main="Casuality Graph for Eastern Cape")
+lines(b_means$lib_size, y2, col = "blue")
+legend(x = "topleft", legend = c(paste(colnames(d[10]),"xmap",colnames(d[11])),paste(colnames(d[11]),"xmap",colnames(d[10]))), col = c("red", 
+    "blue"), lwd = 1, bty = "n", inset = 0.02, cex = 0.8)
+
+```
+
+
+
+
+
