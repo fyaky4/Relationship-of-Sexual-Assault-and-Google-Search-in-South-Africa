@@ -1,2 +1,5 @@
 # Relationship-of-Sexual-Assault-and-Google-Search-in-South-Africa
 Masters in Statistics special project
+
+Rape is one of the major public Social concern in South Africa (SA). The
+incidence of rape has led to the country being referred to as the "rape capital of the world". The government has been criticized for doing too little to stop crime. Provincial legislators have stated that a lack of sufficient equipment has resulted in an ineffective and demoralized South African Police Service which in turn increases crime in the area[1]. Increased crime has been shown to have a dramatic effect on social fabric, or the interpersonal relations between members of a community, because crime creates fear. The more that people are aware of crime, the more that they tend to fear becoming victims of crime. With this our studies aim at analyzing the association between the crime rate data and the Google trend data of rape. We study how these two data are related by conducting equivalence test(TOST) and causality test using convergent cross mapping(CCM).
